@@ -16,3 +16,33 @@ def build_sequence_example(inputs, keys):
     })
 
     return tf.train.SequenceExample(feature_lists = feature_list)
+
+
+#------------------------------------------------------------
+#from tensorflow library - adapted for this rnn
+
+def read_from_file(files, batch_size, input_size):
+
+    file_queue = tf.train.string_input_producer(files)
+    reader = tf.TFRecordReader()
+    _, serialized_example = reader.read(file_queue)
+
+    sequence_features = {
+        'inputs': tf.FixedLenSequenceFeature(shape=[input_size],
+                                             dtype=tf.int64),
+        'keys': tf.FixedLenSequenceFeature(shape=[],
+                                             dtype=tf.int64)}
+
+    _, sequence = tf.parse_single_sequence_example(serialized_example, sequence_features=sequence_features)
+
+    length = tf.shape(sequence['inputs'])[0]
+
+    return tf.train.batch(
+        [sequence['inputs'], sequence['labels'], length],
+        batch_size=batch_size,
+        capacity=500,
+        num_threads=4,
+        dynamic_pad=True,
+        allow_smaller_final_batch=False)
+
+
