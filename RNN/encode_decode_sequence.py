@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from Utilities import utilities
 import numpy as np
+from RNN import encode_decode_one_note
 
 class IEncodeDecodeSequence:
 
@@ -23,7 +24,7 @@ class IEncodeDecodeSequence:
 
     # returns a note for a specified key
     @abstractmethod
-    def key_to_note(self, key, notes): raise NotImplementedError
+    def key_to_note(self, key): raise NotImplementedError
 
     #notes_sequence: list of notes
     #returns a SequenceExample object
@@ -74,12 +75,30 @@ class IEncodeDecodeSequence:
         return final_likelihood
 
 
-#class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
+class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
 
+    def __init__(self,one_note_encode_decode):
+        if not isinstance(one_note_encode_decode, encode_decode_one_note.IEncodeDecodeOneNote):
+            return TypeError ("The argument given is not an instance of a encoder_decoder_one_note class")
+        self.one_note_encode_decode = one_note_encode_decode
 
+    def input_size(self):
+        return self.one_note_encode_decode.symbols_numbers
 
+    def keys_number(self):
+        return self.one_note_encode_decode.symbols_numbers
 
+    #one hot encoding - returns a vector with keys number size which is all 0, except the position of the class to which the note belongs
+    def notes_to_input(self, notes, position):
+        final_input = [0]*self.input_size()
+        final_input[self.one_note_encode_decode.encode_one_note(notes[position])] = 1
+        return final_input
 
+    def notes_to_key(self, notes, position):
+        return self.one_note_encode_decode.encode_one_note(notes, position)
+
+    def key_to_note(self, key):
+        return self.one_note_encode_decode.decode_one_note(key)
 
 
 
