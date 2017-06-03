@@ -8,7 +8,7 @@ class IEncodeDecodeSequence:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def input_size(self): raise NotImplementedError
+    def get_input_size(self): raise NotImplementedError
 
     #returns number of keys
     @abstractmethod
@@ -82,7 +82,7 @@ class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
             return TypeError ("The argument given is not an instance of a encoder_decoder_one_note class")
         self.one_note_encode_decode = one_note_encode_decode
 
-    def input_size(self):
+    def get_input_size(self):
         return self.one_note_encode_decode.symbols_numbers
 
     def keys_number(self):
@@ -90,7 +90,7 @@ class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
 
     #one hot encoding - returns a vector with keys number size which is all 0, except the position of the class to which the note belongs
     def notes_to_input(self, notes, position):
-        final_input = [0]*self.input_size()
+        final_input = [0]*self.get_input_size()
         final_input[self.one_note_encode_decode.encode_one_note(notes[position])] = 1
         return final_input
 

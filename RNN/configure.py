@@ -56,3 +56,7 @@ class ConfigRnn():
     def set_early_stop_after(self, nr_epochs):
         self.nr_epochs_before_start = nr_epochs
         return self
+
+    def set_attention_length(self, attention_length):
+        self.attention_length = attention_length
+        return self
