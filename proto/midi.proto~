@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+message MidiDatabase{
+	repeated MidiSong midi_song = 1;
+
+	//represents an entire Midi file, with the information found on its header and its tracks
+	message MidiSong{
+
+		//file unique id
+		int32 id = 1;
+
+		//file absolute path
+		string file_path = 2;
+
+		bytes file_name = 3;
+
+		//file duration time in seconds
+		uint32 file_time = 4;
+
+		//file PPQ - parts per quarter - similar to clock frequency, determines how many ticks are in a quarter note
+		int32 PPQ = 5;
+
+		//each instrument's information is stored in a channel
+		repeated Track track = 6;
+
+		message Track{
+	
+			uint32 track_number = 1;		
+			repeated Tempo tempo = 2;
+			repeated TimeSignature time_signature = 3;
+			repeated KeySignature key_signature = 4;
+			repeated Note notes = 5;
+
+		message Tempo{
+
+			//time when the event was triggered in seconds
+			double time = 1;
+			//tempo in microseconds
+			uint32 tempo_value = 2;
+			}
+
+		message TimeSignature{
+		
+			//time when the event was triggered in seconds
+			double time = 1;
+			uint32 numerator = 2;
+			uint32 denominator = 3;
+			}
+
+		message KeySignature{
+
+			//time when the event was triggered in seconds
+			double time = 1;
+			//set key
+			uint32 key = 2;
+			//set key mode - minor, major
+			uint32 mode = 3;
+			}
+
+		message Note{
+
+			uint32 pitch = 1;
+			uint32 velocity = 2;
+			//time when the note begins - in seconds
+			double start_time_s = 3;
+			//time when the note begins - PPQ time
+			uint32 start_time = 4;
+			//time when the note ends- in seconds
+			double end_time_s = 5;
+			//time when the note ends - PPQ time
+			uint32 end_time = 6;
+			double duration = 7;
+
+			}
+
+		}
+	}
+}
+
+	
+
+
+
