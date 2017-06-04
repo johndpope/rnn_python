@@ -23,7 +23,7 @@ class EncodeDecodeOneNote(IEncodeDecodeOneNote):
 
     """Encodes melodies as following(labels):
         0 - pause
-        1 - note_off, value = pitch
+        1 - note_off
         [2, value] - note_on, value = pitch
     """
 
@@ -31,7 +31,7 @@ class EncodeDecodeOneNote(IEncodeDecodeOneNote):
 
        if(min_note < constants.MIN_PITCH):
             raise ValueError("Minimum pitch is too low")
-       if(max_note > constants.MIN_PITCH):
+       if(max_note > constants.MAX_PITCH):
             raise ValueError("Maximum pitch is too low")
        if(max_note < min_note):
            raise ValueError("Highest pitch must be higher than lowest pitch")
@@ -42,30 +42,27 @@ class EncodeDecodeOneNote(IEncodeDecodeOneNote):
 
     @property
     def symbols_number(self):
-        return (self.max_note - self.min_note)*2 +1
+        return (self.max_note - self.min_note) + 2
 
 
     def encode_one_note(self, note):
 
-        event, pitch = note
-        if pitch > utilities.min_note:
-            return pitch-constants.min_note
+        #note event
+        if note > utilities.min_note:
+            return note-constants.min_note
 
-        if event == 2:
-            return 1
-
-        return 0
+        #note off event or pause event
+        return note
 
     def decode_one_note(self, index):
 
-        event, pitch = index
-        if pitch > utilities.min_note:
-            return pitch+constants.min_note
+        #note index
+        if index>0:
+            return (index-2)+constants.min_note
 
-        if event == 2:
-            return 1
+        #note off event or pause event
+        return index
 
-        return 0
 
 
 

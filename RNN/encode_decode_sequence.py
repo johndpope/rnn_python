@@ -3,6 +3,7 @@ from Utilities import utilities
 import numpy as np
 from RNN import encode_decode_one_note
 
+
 class IEncodeDecodeSequence:
 
     __metaclass__ = ABCMeta
@@ -78,7 +79,7 @@ class IEncodeDecodeSequence:
 class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
 
     def __init__(self,one_note_encode_decode):
-        if not isinstance(one_note_encode_decode, encode_decode_one_note.IEncodeDecodeOneNote):
+        if not issubclass(one_note_encode_decode, encode_decode_one_note.IEncodeDecodeOneNote):
             return TypeError ("The argument given is not an instance of a encoder_decoder_one_note class")
         self.one_note_encode_decode = one_note_encode_decode
 
