@@ -8,15 +8,15 @@ class IEncodeDecodeOneNote:
 
     @abstractmethod
     #return an integer value representing the number of symbols used
-    def symbols_number(self): raise NotImplementedError
+    def get_class_size(self): raise NotImplementedError
 
     @abstractmethod
     #return a representation for a note
-    def encode_one_note(self): raise NotImplementedError
+    def encode_one_note(self, note): raise NotImplementedError
 
     @abstractmethod
     #return a note from a representation
-    def decode_one_note(self): raise NotImplementedError
+    def decode_one_note(self, index): raise NotImplementedError
 
 
 class EncodeDecodeOneNote(IEncodeDecodeOneNote):
@@ -39,29 +39,26 @@ class EncodeDecodeOneNote(IEncodeDecodeOneNote):
        self.min_note = min_note
        self.max_note = max_note
 
-
-    @property
-    def symbols_number(self):
+    def get_class_size(self):
         return (self.max_note - self.min_note) + 2
-
 
     def encode_one_note(self, note):
 
         #note event
-        if note > utilities.min_note:
-            return note-constants.min_note
+        if note >= self.min_note:
+            return note-self.min_note+2
 
         #note off event or pause event
-        return note
+        return note+2
 
     def decode_one_note(self, index):
 
         #note index
         if index>0:
-            return (index-2)+constants.min_note
+            return (index-2)+self.min_note
 
         #note off event or pause event
-        return index
+        return index - 2
 
 
 

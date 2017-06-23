@@ -5,7 +5,7 @@ from RNN import encode_decode_one_note
 from Utilities import constants
 
 
-class IEncodeDecodeSequence:
+class IEncodeDecodeSequenceChord:
 
     __metaclass__ = ABCMeta
 
@@ -33,7 +33,7 @@ class IEncodeDecodeSequence:
 
         inputs, labels = zip(
             *[(self.notes_to_input(notes_sequence, i), self.notes_to_key(notes_sequence, i+1)) for i in
-              range(len(notes_sequence) - 2)])
+              range(len(notes_sequence[0]) - 1)])
         return utilities.build_sequence_example_chords(inputs, labels)
 
     #returns a batch containing the last parameter if is_first = false and the entire sequence if is_first is true
@@ -76,7 +76,7 @@ class IEncodeDecodeSequence:
         return final_likelihood
 
 
-class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
+class EncodeDecodeOneHotEncodingChords(IEncodeDecodeSequenceChord):
 
     def __init__(self, one_note_encode_decode):
         if not issubclass(type(one_note_encode_decode), encode_decode_one_note.IEncodeDecodeOneNote):
@@ -86,23 +86,29 @@ class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
     def get_input_size(self):
         return self.one_note_encode_decode.get_class_size()
 
+
     def keys_number(self):
         return self.one_note_encode_decode.get_class_size()
 
     #one hot encoding - returns a vector with keys number size which is all 0, except the position of the class to which the note belongs
     def notes_to_input(self, notes, position):
-        final_input = [0]*self.get_input_size()
-        final_input[self.notes_to_key(notes[position])] = 1
+
+        final_input = ([0] * self.get_input_size())
+
+        keys = self.notes_to_key(notes, position)
+        for key in keys:
+            final_input[key] += 1
+
         return final_input
 
     def notes_to_key(self, notes, position):
-        return self.one_note_encode_decode.encode_one_note(notes[position])
+
+        final_keys = []
+
+        for i in range(0, constants.MAX_SIMULTAN_NOTES):
+            final_keys.append(self.one_note_encode_decode.encode_one_note(notes[i][position]))
+
+        return final_keys
 
     def key_to_note(self, key):
         return self.one_note_encode_decode.decode_one_note(key)
-
-
-
-
-
-

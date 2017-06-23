@@ -1,5 +1,5 @@
 from RNN import encode_decode_one_note, encode_decode_sequence
-
+from Utilities import constants
 
 class ConfigRnn():
 
@@ -7,12 +7,13 @@ class ConfigRnn():
 
     #default configuration
     def __init__(self):
-        self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote)
+        self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote(constants.MIN_PITCH, constants.MIN_PITCH))
         self.learning_rate = 0.0
-        self.batch_size = 1
+        self.batch_size = 12
         self.rnn_layer_size = 1
         self.nr_epochs_before_start = 10
         self.nr_training_steps = 1000
+        self.truncated_backprop_length = (1.0/constants.MIN_DURATION)*5
 
     #   value: 1 - OneHotEncoding
     def set_encoder_decoder(self, value):
