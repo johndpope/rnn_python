@@ -1,6 +1,6 @@
 from proto import midi_pb2
 from abc import ABCMeta, abstractmethod
-from Utilities import constants, utilities
+from Utilities import constants, sequence_example_utilities
 import tensorflow as tf
 
 
@@ -13,6 +13,7 @@ class IMusicEntry:
 
     #get all the data from proto file
     def collect_data(self, database_name):
+
         midi_database = midi_pb2.MidiDatabase()
 
         # Read the existing files
@@ -26,7 +27,6 @@ class IMusicEntry:
     def prepare_notes(self, song): raise NotImplementedError
 
     #midi_list : list of melodies
-    #returns a sequence example, according to the chosen encoder
     def prepare_input(self, midi_list): raise NotImplementedError
 
 class MusicEntryOneHot(IMusicEntry):
@@ -50,7 +50,7 @@ class MusicEntryOneHot(IMusicEntry):
                 data[i] += note_list[i]
 
         encoded_data = self.encoder_decoder.encode(data)
-        batched_data = utilities.build_input(encoded_data, batch_size)
+        batched_data = sequence_example_utilities.build_input(encoded_data, batch_size)
         return batched_data
 
 

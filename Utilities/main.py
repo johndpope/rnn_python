@@ -1,11 +1,8 @@
+from RNN import music_info
 from proto import midi_pb2
-from RNN import prepare_encoder_entry
-from RNN import encode_decode_chord
-from RNN import encode_decode_one_note
-from Utilities import constants
-from operator import add
-import tensorflow as tf
-import seq2seq as seq2seq
+from Utilities import music_utilities
+from RNN import encode_decode_one_chord, encode_decode_chord_sequence
+
 # #
 # # import tensorflow as tf
 # #
@@ -28,9 +25,24 @@ import seq2seq as seq2seq
 midi_database = midi_pb2.MidiDatabase()
 #
 # #Read the existing files
-f = open("/home/bristina/PycharmProjects/seq2seq/proto/proto_database", "rb")
-midi_database.ParseFromString(f.read())
-f.close()
+
+music_info = music_info.MusicInfo("/home/bristina/PycharmProjects/seq2seq/proto/proto_database")
+#
+encoder_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info=music_info))
+music_utilities.prepare_chords_input([music_info.midi_database.midi_song[0]], encoder_decoder)
+# batch = sequence_example_utilities.build_input("TRAIN", 5, len(music_info.class_dictionary))
+#
+#
+# sess = tf.Session()
+#
+# coord = tf.train.Coordinator()
+# threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+# for i in range(2):
+#     final_image = sess.run(batch)
+#     print(final_image)
+#     print("NEW")
+# coord.request_stop()
+# coord.join(threads)
 
 # dict = {}
 #

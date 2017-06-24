@@ -1,5 +1,6 @@
-from RNN import encode_decode_one_note, encode_decode_sequence
+from RNN import encode_decode_one_chord, encode_decode_chord_sequence
 from Utilities import constants
+from RNN import music_info
 
 class ConfigRnn():
 
@@ -7,13 +8,17 @@ class ConfigRnn():
 
     #default configuration
     def __init__(self):
-        self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote(constants.MIN_PITCH, constants.MIN_PITCH))
-        self.learning_rate = 0.0
+        self.info_file = "info"
+        self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info.MusicInfo(self.info_file)))
+        self.learning_rate = 0.1
         self.batch_size = 12
         self.rnn_layer_size = 1
         self.nr_epochs_before_start = 10
         self.nr_training_steps = 1000
         self.truncated_backprop_length = (1.0/constants.MIN_DURATION)*5
+
+    def set_info_file(self, file):
+        self.info_file = file
 
     #   value: 1 - OneHotEncoding
     def set_encoder_decoder(self, value):
@@ -23,18 +28,18 @@ class ConfigRnn():
                 raise TypeError
         except TypeError:
                 print("Error: Encoder-Decoder must be an integer.Set default encoder")
-                self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote)
+                self.encode_decoder = encode_decode_one_chord.EncodeDecodeOneChord(encode_decode_one_chord.EncodeDecodeOneChord)
                 return self
 
         if value == 0:
-            self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote)
+            self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info.MusicInfo(self.info_file)))
             return self
 
         try:
             raise ValueError
         except ValueError:
                 print("There is no encoder with this number.Set default encoder")
-                self.encode_decoder = encode_decode_sequence.EncodeDecodeOneHotEncoding(encode_decode_one_note.EncodeDecodeOneNote)
+                self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info.MusicInfo(self.info_file)))
                 return self
 
 

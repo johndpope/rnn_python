@@ -1,4 +1,4 @@
-from Utilities import utilities, constants
+from Utilities import sequence_example_utilities, constants
 from abc import ABCMeta, abstractmethod
 
 

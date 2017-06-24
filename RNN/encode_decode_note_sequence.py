@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from Utilities import utilities
+from Utilities import sequence_example_utilities
 import numpy as np
 from RNN import encode_decode_one_note
 from Utilities import constants
@@ -34,7 +34,7 @@ class IEncodeDecodeSequence:
         inputs, labels = zip(
             *[(self.notes_to_input(notes_sequence, i), self.notes_to_key(notes_sequence, i+1)) for i in
               range(len(notes_sequence) - 2)])
-        return utilities.build_sequence_example_chords(inputs, labels)
+        return sequence_example_utilities.build_sequence_example_chords(inputs, labels)
 
     #returns a batch containing the last parameter if is_first = false and the entire sequence if is_first is true
     def get_batches(self, notes_sequence, is_first = False):
@@ -76,11 +76,11 @@ class IEncodeDecodeSequence:
         return final_likelihood
 
 
-class EncodeDecodeOneHotEncoding(IEncodeDecodeSequence):
+class EncodeDecodeOneHotSeqNote(IEncodeDecodeSequence):
 
     def __init__(self, one_note_encode_decode):
         if not issubclass(type(one_note_encode_decode), encode_decode_one_note.IEncodeDecodeOneNote):
-            return TypeError("The argument given is not an instance of a encoder_decoder_one_note class")
+            raise TypeError("The argument given is not an instance of a encoder_decoder_one_note class")
         self.one_note_encode_decode = one_note_encode_decode
 
     def get_input_size(self):
