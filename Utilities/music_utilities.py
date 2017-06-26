@@ -1,6 +1,8 @@
 from Utilities import constants, sequence_example_utilities
 import tensorflow as tf
 import music21 as music21
+from proto import info_file_pb2
+import mido as mido
 
 
 dict_chords = {
@@ -60,7 +62,7 @@ dict_chords = {
 def make_list_min_duration(note, min_duration):
     output_list = []
 
-    if note > 0:
+    if note >= 0:
         output_list += ([note] * (min_duration - 1))
         output_list += ([constants.NOTE_OFF_EVENT])
         return output_list
@@ -107,12 +109,13 @@ def prepare_notes(song):
             current_tempo += 1
 
         # pause time from the last note until current_note
-        pause_time = (current_note.start_time_s - last_note[channel_number]) / (tempos[current_tempo].tempo_value / 1000000.0)
-        f_pause_time = pause_time / constants.MIN_DURATION
+        if (current_note.start_time_s - last_note[channel_number]) != 0:
+            pause_time =  (tempos[current_tempo].tempo_value / 1000000.0)*4 / (current_note.start_time_s - last_note[channel_number])
+            f_pause_time = (1/pause_time) / constants.MIN_DURATION
 
-        # pause between notes on all channels
-        blanks_n = make_list_min_duration(constants.PAUSE_EVENT, int(round(f_pause_time)))
-        output_list[channel_number] += blanks_n
+            # pause between notes on all channels
+            blanks_n = make_list_min_duration(constants.PAUSE_EVENT, int(round(f_pause_time)))
+            output_list[channel_number] += blanks_n
 
         last_note[channel_number] = current_note.end_time_s
 
@@ -134,14 +137,14 @@ def prepare_notes(song):
                 i += 1
 
                 # pause time from the last note until current_note
-                pause_time = (current_note.start_time_s - last_note[channel_number]) / (
-                tempos[current_tempo].tempo_value / 1000000.0)
+                if (current_note.start_time_s - last_note[channel_number]) != 0:
+                    pause_time = (tempos[current_tempo].tempo_value / 1000000.0) * 4 / (
+                    current_note.start_time_s - last_note[channel_number])
+                    f_pause_time = (1/pause_time) / constants.MIN_DURATION
 
-                f_pause_time = pause_time / constants.MIN_DURATION
-
-                # pause between notes on all channels
-                blanks_n = make_list_min_duration(constants.PAUSE_EVENT, int(round(f_pause_time)))
-                output_list[channel_number] += blanks_n
+                    # pause between notes on all channels
+                    blanks_n = make_list_min_duration(constants.PAUSE_EVENT, int(round(f_pause_time)))
+                    output_list[channel_number] += blanks_n
 
                 # how many quavers have the current note
                 note_duration_min = current_note.duration / constants.MIN_DURATION
@@ -207,3 +210,97 @@ def prepare_chords_input(midi_database, encoder_decoder):
         # song_nr += 1
 
     writer.close()
+
+
+def decode_one_note(index):
+    # note index
+    if index >= 2:
+        return (index - 2) + constants.MIN_PITCH
+
+    # note off event or pause event
+    return index - 2
+
+
+def generate_from_sequence(chords_sequence):
+
+    midi = mido.MidiFile()
+    midi_events = []
+
+    track2 = mido.MidiTrack()
+    track1 = mido.MidiTrack()
+    midi.tracks.append(track1)
+    midi.tracks.append(track2)
+
+    track1.append(mido.MetaMessage('set_tempo'))
+
+    time = 0
+    tempo = 120
+    val_min_duration = int(mido.second2tick((2*constants.MIN_DURATION), midi.ticks_per_beat, mido.bpm2tempo(tempo)))
+    # #
+    # track1.append(mido.Message("note_on", note=64, velocity=64, time=0 * val_min_duration))
+    # track1.append(mido.Message("note_on", note=65, velocity=64, time=0 * val_min_duration))
+    # track1.append(mido.Message("note_off", note=64, velocity=64, time=1 * val_min_duration))
+    # track1.append(mido.Message("note_off", note=65, velocity=64, time=1 * val_min_duration))
+    # track1.append(mido.Message("note_on", note=63, velocity=64, time=0 * val_min_duration))
+    # track1.append(mido.Message("note_off", note=63, velocity=64, time=1 * val_min_duration))
+
+    chords_before = []
+
+
+    for chord in chords_sequence:
+        current_chord = []
+        note_off = False
+        note_before = False
+        for i in range(len(chord)-1, -1, -1):
+                for j in range(0, chord[i]):
+                    note = decode_one_note(i)
+                    if note>=constants.MIN_PITCH:
+                        current_chord.append(note)
+                        if note not in chords_before:
+                            midi_events.append(mido.Message("note_on", note=note, velocity=64, time=time * val_min_duration))
+                            time = 0
+                        else:
+                            chords_before.remove(note)
+
+                    elif note == -1:
+                        if not note_off:
+                            time +=1
+                        midi_events.append(mido.Message("note_off", note=chords_before.pop(), velocity = 64, time=time*val_min_duration))
+                        time = 0
+                        note_off = True
+
+
+
+        if not note_off:
+            time += 1
+        chords_before = current_chord
+
+    for midi_event in midi_events:
+        track2.append(midi_event)
+
+    midi.save("new_song.mid")
+
+
+def read_database_info():
+
+    file_info = info_file_pb2.DatabaseInfo()
+
+    # Read the existing files
+    f = open("/home/bristina/PycharmProjects/seq2seq/Utilities/file_info", "rb")
+    file_info.ParseFromString(f.read())
+
+    class_dictionary = {}
+
+    for infos in file_info.class_dictionary:
+        final_key = 0
+        chord = []
+        for i in range(len(infos.key)):
+            final_key |= (infos.key[i] << (64 * i))
+        for value in infos.value:
+            chord.append(value)
+
+        class_dictionary[final_key] = chord
+
+    f.close()
+
+    return (file_info.number_of_classes, class_dictionary)

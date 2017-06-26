@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message DatabaseInfo{
+
+	uint32 number_of_classes = 1;
+	repeated ClassDictionary class_dictionary = 2;	
+	
+	message ClassDictionary{
+
+		uint64 key = 1;
+		repeated int32 value = 2; 		
+	
+	}
+}

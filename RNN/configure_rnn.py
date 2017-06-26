@@ -17,6 +17,7 @@ class ConfigRnn():
         self.nr_training_steps = 1000
         self.truncated_backprop_length = (1.0/constants.MIN_DURATION)*5
 
+
     def set_info_file(self, file):
         self.info_file = file
 
@@ -28,18 +29,18 @@ class ConfigRnn():
                 raise TypeError
         except TypeError:
                 print("Error: Encoder-Decoder must be an integer.Set default encoder")
-                self.encode_decoder = encode_decode_one_chord.EncodeDecodeOneChord(encode_decode_one_chord.EncodeDecodeOneChord)
+                self.encode_decoder = encode_decode_one_chord.EncodeDecodeOneChord(encode_decode_one_chord.EncodeDecodeOneChord(self.info_file))
                 return self
 
         if value == 0:
-            self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info.MusicInfo(self.info_file)))
+            self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(self.info_file))
             return self
 
         try:
             raise ValueError
         except ValueError:
                 print("There is no encoder with this number.Set default encoder")
-                self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(music_info.MusicInfo(self.info_file)))
+                self.encode_decoder = encode_decode_chord_sequence.EncodeDecodeOneHotSeqChords(encode_decode_one_chord.EncodeDecodeOneChord(self.info_file))
                 return self
 
 

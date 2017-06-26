@@ -54,7 +54,7 @@ class EncodeDecodeOneNote(IEncodeDecodeOneNote):
     def decode_one_note(self, index):
 
         #note index
-        if index>0:
+        if index>=2:
             return (index-2)+self.min_note
 
         #note off event or pause event

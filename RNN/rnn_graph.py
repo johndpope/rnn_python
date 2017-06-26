@@ -97,7 +97,7 @@ def build_graph(filename, mode, configuration):
 
             #COMPARE WITH LOGITS USING SOFTMAX
             flatten_labels = _flat_seq(labels, length)
-            softmax_cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=flatten_labels, logits=flatten_logits)
+            cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=flatten_labels, logits=flatten_logits)
 
             #CORRECT LOGITS
             flatten_prediction = tf.argmax(flatten_logits, axis=1)
@@ -108,8 +108,8 @@ def build_graph(filename, mode, configuration):
             if mode == 0:
 
                 #compute rnn parameters
-                loss = tf.reduce_mean(softmax_cross_entropy)
-                perplexity = tf.reduce_mean(tf.exp(softmax_cross_entropy))
+                loss = tf.reduce_mean(cross_entropy, name='xentropy_mean')
+                perplexity = tf.reduce_mean(tf.exp(cross_entropy))
                 accuracy = tf.reduce_mean(correct_predictions)
                 event_accuracy = (
                     tf.reduce_sum(correct_predictions * event_positions) /
@@ -121,36 +121,40 @@ def build_graph(filename, mode, configuration):
                 optimizer = tf.train.AdagradOptimizer(learning_rate=configuration.learning_rate)
 
                 train = tf.contrib.slim.learning.create_train_op(loss, optimizer)
-                tf.add_to_collection('train', train)
+                tf.add_to_collection('train_node', train)
 
-                eval_param = {
+                train_param = {
                     'loss': loss,
-                    'metrics/perplexity': perplexity,
-                    'metrics/accuracy': accuracy,
-                    'metrics/event_accuracy': event_accuracy,
-                    'metrics/no_event_accuracy': no_event_accuracy,
+                    'perplexity': perplexity,
+                    'accuracy': accuracy,
+                    'event_accuracy': event_accuracy,
+                    'no_event_accuracy': no_event_accuracy,
                 }
+
+                for k in train_param:
+                    tf.summary.scalar(k, train_param[k])
+                    tf.add_to_collection(k, train_param[k])
 
             elif mode == 1:
 
                 #USE TF.SLIM FOR EVALUATING AFTER TRAIN AND SHOW RESULTS IN TENSOBOARD
                 eval_param, update_ops = tf.contrib.metrics.aggregate_metric_map(
                     {
-                        'loss': tf.metrics.mean(softmax_cross_entropy),
+                        'loss': tf.metrics.mean(cross_entropy),
                         'metrics/accuracy': tf.metrics.accuracy(flatten_labels, flatten_prediction),
                         'metrics/per_class_accuracy':tf.metrics.mean_per_class_accuracy(
                                 flatten_labels, flatten_prediction, configuration.encoder_decoder.keys_number),
                         'metrics/event_accuracy': tf.metrics.recall(event_positions, correct_predictions),
                         'metrics/no_event_accuracy': tf.metrics.recall(no_event_positions, correct_predictions),
-                        'metrics/perplexity': tf.metrics.mean(tf.exp(softmax_cross_entropy)),
+                        'metrics/perplexity': tf.metrics.mean(tf.exp(cross_entropy)),
                     })
                 for updates_op in update_ops.values():
-                    tf.add_to_collection('eval', updates_op)
+                    tf.add_to_collection('eval_node', updates_op)
 
-                for var_name, var_value in eval_param.iteritems():
+                for k in eval_param:
                     #see them in tensorboard
-                    tf.summary.scalar(var_name, var_value)
-                    tf.add_to_collection(var_name, var_value)
+                    tf.summary.scalar(k, eval_param[k])
+                    tf.add_to_collection(k, eval_param[k])
 
             elif mode == 2:
 

@@ -25,7 +25,7 @@ class EncodeDecodeOneChord(IEncodeDecodeOneChord):
        self.music_info = music_info
 
     def get_class_size(self):
-        return len(self.music_info.class_dictionary)
+        return self.music_info[0]
 
     #makes the chord as a base10 number from base 4
     def encode_one_chord(self, chord):
@@ -33,13 +33,13 @@ class EncodeDecodeOneChord(IEncodeDecodeOneChord):
         chords_number = [chord[i]*pow(constants.MAX_SIMULTAN_NOTES+1,i) for i in range(0, len(chord))]
         unseq_key = reduce(lambda x, y: x+y, chords_number)
 
-        ordered_keys = sorted(self.music_info.class_dictionary.keys())
+        ordered_keys = sorted(self.music_info[1].keys())
         for i in range(0, len(ordered_keys)):
             if ordered_keys[i] == unseq_key:
                 return i
 
     def decode_one_chord(self, index):
 
-        ordered_keys = sorted(self.music_info.class_dictionary.keys())
+        ordered_keys = sorted(self.music_info[1].keys())
         unseq_key = ordered_keys[index]
-        return self.music_info.class_dictionary[unseq_key]
+        return self.music_info[1][unseq_key]
