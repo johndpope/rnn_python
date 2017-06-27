@@ -63,7 +63,7 @@ def _flat_seq(seq, length):
 
 def build_graph(filename, mode, configuration):
 
-    if mode>=3:
+    if mode >= 3:
         raise ValueError("Mode parameter is not correct.")
 
     #creates a default graph
@@ -86,18 +86,25 @@ def build_graph(filename, mode, configuration):
         initial_state = cell.zero_state(configuration.batch_size, tf.float32)
 
         #MAKE RNN
-        outputs, final_state = tf.nn.dynamic_rnn(cell, inputs, sequence_length=length, initial_state=initial_state)
+        outputs, final_state = tf.nn.dynamic_rnn(cell=cell,
+                                                 inputs=inputs,
+                                                 sequence_length=length,
+                                                 dtype = tf.int64,
+                                                 initial_state=initial_state)
 
         #CREATE THE WEIGHTED MATRIX, RESULTING IN LOGITS
         #reduce a dimension added by the batched
         flatten_outputs = _flat_seq(outputs, length)
-        flatten_logits = tf.contrib.layers.fully_connected(flatten_outputs, configuration.encoder_decoder.keys_number(), activation_fn = None)
+        flatten_logits = tf.contrib.layers.fully_connected(flatten_outputs,
+                                                           configuration.encoder_decoder.keys_number(),
+                                                           activation_fn = None)
 
         if mode == 0 or mode == 1:
 
             #COMPARE WITH LOGITS USING SOFTMAX
             flatten_labels = _flat_seq(labels, length)
-            cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=flatten_labels, logits=flatten_logits)
+            cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=flatten_labels,
+                                                                           logits=flatten_logits)
 
             #CORRECT LOGITS
             flatten_prediction = tf.argmax(flatten_logits, axis=1)

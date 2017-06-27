@@ -191,23 +191,14 @@ def prepare_chords_input(midi_database, encoder_decoder):
 
     writer = tf.python_io.TFRecordWriter('TRAIN')
 
-    for song in midi_database:
+    for song in midi_database.midi_song:
 
         note_list = prepare_notes(song)
         chords = get_chords(note_list)
-        for chord in chords:
-            chordd = ""
-            for i in range(len(chord)):
-                if chord[i] != 0 and i > 1:
-                    note = i + constants.MIN_PITCH - 2
-                    chordd = chordd + dict_chords[note] + " "
-            if chordd != "":
-                chord_music = music21.chord.Chord(chordd)
-                print(chord_music.pitchedCommonName)
-        # seq_ex = encoder_decoder.encode(chords)
-        # writer.write(seq_ex.SerializeToString())
-        # print(song_nr)
-        # song_nr += 1
+        seq_ex = encoder_decoder.encode(chords)
+        writer.write(seq_ex.SerializeToString())
+        print(song_nr)
+        song_nr += 1
 
     writer.close()
 
@@ -236,14 +227,6 @@ def generate_from_sequence(chords_sequence):
     time = 0
     tempo = 120
     val_min_duration = int(mido.second2tick((2*constants.MIN_DURATION), midi.ticks_per_beat, mido.bpm2tempo(tempo)))
-    # #
-    # track1.append(mido.Message("note_on", note=64, velocity=64, time=0 * val_min_duration))
-    # track1.append(mido.Message("note_on", note=65, velocity=64, time=0 * val_min_duration))
-    # track1.append(mido.Message("note_off", note=64, velocity=64, time=1 * val_min_duration))
-    # track1.append(mido.Message("note_off", note=65, velocity=64, time=1 * val_min_duration))
-    # track1.append(mido.Message("note_on", note=63, velocity=64, time=0 * val_min_duration))
-    # track1.append(mido.Message("note_off", note=63, velocity=64, time=1 * val_min_duration))
-
     chords_before = []
 
 

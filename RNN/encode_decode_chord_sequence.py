@@ -32,9 +32,12 @@ class IEncodeDecodeSequenceChord:
     #notes_sequence: list of notes
     def encode(self, chords_sequence):
 
-        inputs, labels = zip(
-            *[(self.notes_to_input(chords_sequence, i), self.notes_to_key(chords_sequence, i+1)) for i in
-              range(len(chords_sequence) - 1)])
+        inputs = []
+        labels = []
+
+        for i in range(len(chords_sequence)-1):
+            inputs.append(self.notes_to_input(chords_sequence, i))
+            labels.append(self.notes_to_key(chords_sequence, i+1))
         return sequence_example_utilities.build_sequence_example_chords(inputs, labels)
 
 class EncodeDecodeOneHotSeqChords(IEncodeDecodeSequenceChord):
@@ -43,11 +46,7 @@ class EncodeDecodeOneHotSeqChords(IEncodeDecodeSequenceChord):
         if not issubclass(type(one_chord_encode_decode), encode_decode_one_chord.IEncodeDecodeOneChord):
             raise TypeError("The argument given is not an instance of a encoder_decoder_one_chord class")
         self.one_chord_encode_decode = one_chord_encode_decode
-        self.one_hot_vector = [0] * self.get_input_size()
-        self.last_key = 0
 
-    def _update_one_hot(self, key):
-        self.one_hot_vector[key] = 0
 
     def get_input_size(self):
         return self.one_chord_encode_decode.get_class_size()
@@ -59,10 +58,11 @@ class EncodeDecodeOneHotSeqChords(IEncodeDecodeSequenceChord):
     #one hot encoding - returns a vector with keys number size which is all 0, except the position of the class to which the note belongs
     def notes_to_input(self, chords, position):
 
-        self._update_one_hot(self.last_key)
-        self.last_key = self.notes_to_key(chords, position)
-        self.one_hot_vector[self.last_key] += 1
-        return self.one_hot_vector
+        one_hot_vector = [0] * self.get_input_size()
+
+        last_key = self.notes_to_key(chords, position)
+        one_hot_vector[last_key] += 1
+        return one_hot_vector
 
     def notes_to_key(self, chords, position):
 
