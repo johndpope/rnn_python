@@ -171,7 +171,7 @@ def build_graph(filename, mode, configuration):
                 softmax = tf.reshape(flatten_softmax, [configuration.batch_size, -1, configuration.encoder_decoder.keys_number])
 
                 tf.add_to_collection('inputs', inputs)
-                tf.add_to_collection('res', res)
+                tf.add_to_collection('temperature', res)
                 tf.add_to_collection('softmax', softmax)
 
                 for state in flatten(initial_state):

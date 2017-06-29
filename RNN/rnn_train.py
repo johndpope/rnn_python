@@ -38,6 +38,8 @@ def _run_train(graph, config, logdir):
             save_checkpoint_steps = config.save_checkpoint_steps,
             save_summaries_steps=config.save_summaries_steps)
 
+
+
 def _run_eval(graph, config, logdir, eval_steps):
 
     with graph.as_default():
@@ -69,6 +71,9 @@ def _run_eval(graph, config, logdir, eval_steps):
             eval_interval_secs=60,
             timeout= 300
         )
+
+        #save the graph to a file
+        tf.train.export_meta_graph(filename='/home/bristina/music_graph/graph')
 
 
 def main():

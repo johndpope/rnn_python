@@ -233,7 +233,6 @@ def generate_from_sequence(chords_sequence):
     for chord in chords_sequence:
         current_chord = []
         note_off = False
-        note_before = False
         for i in range(len(chord)-1, -1, -1):
                 for j in range(0, chord[i]):
                     note = decode_one_note(i)

@@ -12,3 +12,5 @@ NO_CHORD_EVENT = 0
 
 INFO_DIR = "/home/bristina/logging_info"
 NUMBER_OF_FILES = 143
+
+MIDI_TO_GENERATE = 20

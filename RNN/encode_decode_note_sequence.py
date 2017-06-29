@@ -29,7 +29,7 @@ class IEncodeDecodeSequence:
     def key_to_note(self, key): raise NotImplementedError
 
     #notes_sequence: list of notes
-    def encode(self, notes_sequence):
+    def encode(self, notes_sequence, i):
 
         inputs, labels = zip(
             *[(self.notes_to_input(notes_sequence, i), self.notes_to_key(notes_sequence, i+1)) for i in
@@ -51,8 +51,20 @@ class IEncodeDecodeSequence:
 
         return final_input
 
+    def extend_event_sequences(self, event_sequences, softmax):
+
+        num_classes = len(softmax[0][0])
+        chosen_classes = []
+        for i in range(len(event_sequences)):
+            chosen_class = np.random.choice(num_classes, p=softmax[i][-1])
+            event = self.key_to_note(chosen_class, event_sequences[i])
+            event_sequences[i].append(event)
+            chosen_classes.append(chosen_class)
+
+        return chosen_classes
+
     #return a vector which evaluates the probability of each element to be the desider sequence - the smaller, the better
-    def apply_log_likelihood(self, notes_sequences, softmax):
+    def evaluate_log_likelihood(self, notes_sequences, softmax):
 
         final_likelihood = []
 

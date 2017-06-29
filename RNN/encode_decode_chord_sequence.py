@@ -27,7 +27,7 @@ class IEncodeDecodeSequenceChord:
 
     # returns a note for a specified key
     @abstractmethod
-    def key_to_note(self, key): raise NotImplementedError
+    def key_to_note(self, key, position): raise NotImplementedError
 
     #notes_sequence: list of notes
     def encode(self, chords_sequence):
@@ -39,6 +39,53 @@ class IEncodeDecodeSequenceChord:
             inputs.append(self.notes_to_input(chords_sequence, i))
             labels.append(self.notes_to_key(chords_sequence, i+1))
         return sequence_example_utilities.build_sequence_example_chords(inputs, labels)
+
+    def get_inputs_batch(self, event_sequences):
+
+        inputs_batch = []
+
+        for events in event_sequences:
+            inputs = [self.notes_to_input(events,i) for i in range(len(events))]
+            inputs_batch.append(inputs)
+
+        return inputs_batch
+
+
+    def extend_event_sequences(self, event_sequences, softmax):
+
+        num_classes = len(softmax[0][0])
+        chosen_classes = []
+        for i in range(len(event_sequences)):
+            chosen_class = np.random.choice(num_classes, p=softmax[i][-1])
+            event = self.key_to_note(chosen_class, event_sequences[i])
+            event_sequences[i].append(event)
+            chosen_classes.append(chosen_class)
+
+        return chosen_classes
+
+    #return a vector which evaluates the probability of each element to be the desider sequence - the smaller, the better
+    def evaluate_log_likelihood(self, notes_sequences, softmax):
+
+        final_likelihood = []
+
+        if len(notes_sequences) != len(softmax):
+            raise ValueError("Softmax list and note sequences list should have the same length")
+
+        for i in range(len(notes_sequences)):
+            if len(softmax[i]) >= len(notes_sequences[i]):
+                raise ValueError("The softmax vector corresponding to a sequence cannot have a length grater or equal with the sequence length.")
+            #compute number of notes
+            notes_evaluate = len(notes_sequences[i]) - len(softmax[i])
+            log_likelihood = 0.0
+            softmax_position = 0
+            for position in range(len(notes_sequences[i]), notes_evaluate):
+                i = self.notes_to_key(notes_sequences[i], position)
+                log_likelihood += np.log(softmax[i][softmax_position][i])
+                softmax_position += 1
+
+            final_likelihood.append(log_likelihood)
+
+        return final_likelihood
 
 class EncodeDecodeOneHotSeqChords(IEncodeDecodeSequenceChord):
 
@@ -69,5 +116,5 @@ class EncodeDecodeOneHotSeqChords(IEncodeDecodeSequenceChord):
         chord = chords[position]
         return self.one_chord_encode_decode.encode_one_chord(chord)
 
-    def key_to_note(self, key):
+    def key_to_note(self, key, position):
         return self.one_chord_encode_decode.decode_one_chord(key)
